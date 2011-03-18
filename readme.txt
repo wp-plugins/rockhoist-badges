@@ -1,5 +1,5 @@
 === Plugin Name ===
-Contributors: esserw
+Contributors: esserq
 Donate link: http://blarrr.com/wordpress-badges-plugin/
 Tags: badges, awards, points
 Requires at least: 3.1
@@ -22,7 +22,7 @@ A Stack Overflow inspired plugin for WordPress which allows users to acquire bad
 
 1. The Badge management screen
 2. The badge condition management screen
-3. <?php rhb_list_badges(); ?> in action
+3. `<?php rhb_list_badges(); ?>` in action
 
 == Changelog ==
 
