@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Rockhoist Badges
-Version: 1.0
+Version: 1.1
 Plugin URI: http://blarrr.com/wordpress-badges-plugin/
 Description: A Stack Overflow inspired plugin which allows users to acquire badges. Badges are created and managed through the standard WordPress Dashboard.
 Author: B. Jordan
@@ -27,10 +27,14 @@ http://www.gnu.org/licenses/gpl.txt
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-//Changelog
-$current_version = array('1.0');
+// Change Log
+$current_version = array('1.1');
 
-//Install the plugin.
+// Database schema version
+global $rhb_db_version;
+$rhb_db_version = "1.0";
+
+// Install the plugin.
 function rhb_installation() {
 
 	global $wpdb;
@@ -86,22 +90,24 @@ function rhb_installation() {
 		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 		dbDelta( $sql );
 	}
+ 
+	add_option("rhb_db_version", $rhb_db_version);
 }
 
 
-// Hook for registering the install function upon plugin activation
+// Hook for registering the install function upon plugin activation.
 register_activation_hook(__FILE__,'rhb_installation');
 
 // Add the badge count to the Dashboard landing page.
-add_action('right_now_content_table_end', 'rh_rhb_add_badge_counts');
+add_action('right_now_content_table_end', 'rhb_add_badge_counts');
 
 // Check for new badges after a post is published.
-add_action('publish_post', 'rhb_check_current_user');
+add_action('publish_post', 'rhb_check_author');
 
 // Check for new badges after a comment is published.
 add_action('comment_post', 'rhb_check_current_user');
 
-function rh_rhb_add_badge_counts() {
+function rhb_add_badge_counts() {
 		
 	$num = intval( rhb_count_badges() );
 		
@@ -111,6 +117,7 @@ function rh_rhb_add_badge_counts() {
             $num = "<a href='edit.php?page=badges'>$num</a>";
             $text = "<a href='edit.php?page=badges'>$text</a>";
         }
+        
         echo '<td class="first b b-badges">' . $num . '</td>';
         echo '<td class="t badges">' . $text . '</td>';
 
@@ -180,6 +187,64 @@ function rhb_list_badges() {
 	</div>';
 }
 
+function rhb_list_recent_badges() {
+
+	print '<div id="recent-badges-table">
+		<table>
+			<tbody>';
+	
+			foreach (rhb_get_recent_badges() as $user_badge) {
+			
+			print '<tr>
+				<td class="badge-cell">
+					<a class="badge">
+					<span class="';
+
+					if ( 'gold' == $user_badge->type )
+						echo 'badge3';
+					elseif ( 'silver' == $user_badge->type )
+						echo 'badge2';
+					elseif ( 'bronze' == $user_badge->type )
+						echo 'badge1';
+					
+					print '"></span>
+						' . $user_badge->name . '
+						</a>
+					</td>
+					<td>' . $user_badge->user_nicename. '</td>
+				</tr>';
+			}
+		print '</tbody>
+	</table>
+	</div>';
+}
+
+function rhb_get_recent_badges() {
+	
+	global $wpdb;
+
+	if ( empty($filter ) ) { $filter = array(); }
+	$limit = ( isset( $filter['limit'] ) ? $filter['limit'] : 10 );
+
+	$sql = 'SELECT u.id user_id, 
+		u.user_nicename, 
+		b.badge_id, 
+		b.name, 
+		b.type, 
+		b.description
+	FROM ' . $wpdb->prefix . 'rh_user_badges ub,
+		' . $wpdb->prefix . 'users u,
+		' . $wpdb->prefix . 'rh_badges b
+	WHERE ub.badge_id = b.badge_id
+		AND ub.user_id = u.id
+	ORDER BY ub.time DESC
+	LIMIT 0, ' . $limit;
+
+	$recent_badges = $wpdb->get_results( $wpdb->prepare( $sql ) );
+
+	return $recent_badges;
+}
+
 function rhb_get_badge_conditions( $filter = '' ) {
 
 	global $wpdb;
@@ -212,7 +277,6 @@ function rhb_add_badge( $args = '' ) {
 			'description' => $args['description'],
 			'type' => $args['type']), 
 		array( '%s', '%s', '%s' ) );
-	
 }
 
 function rhb_add_badge_condition( $args = '' ) {
@@ -225,7 +289,6 @@ function rhb_add_badge_condition( $args = '' ) {
 			'value' => $args['value'],
 			'count' => $args['count']), 
 		array( '%d', '%s', '%s', '%d' ) );
-
 }
 
 function rhb_remove_badge( $args = '' ) {
@@ -266,7 +329,7 @@ function rhb_get_user_comment_count( $args = '' ) {
 	global $wpdb;
 
 	$comment_count = $wpdb->get_var($wpdb->prepare( "SELECT COUNT(*) 
-		FROM wp_comments
+		FROM " . $wpdb->prefix . "comments
 		WHERE user_id = " . $args['user_ID'] . "
 		AND comment_approved = '1'" ) );
 
@@ -278,7 +341,7 @@ function rhb_get_user_post_count( $args = '' ) {
 	global $wpdb;
 
 	$post_count = $wpdb->get_var($wpdb->prepare( "SELECT COUNT(*) 
-		FROM wp_posts
+		FROM " . $wpdb->prefix . "posts
 		WHERE post_author = " . $args['user_ID'] . "
 		AND post_status = 'publish'
 		AND post_type = 'post'" ) );
@@ -309,6 +372,14 @@ function rhb_check_current_user() {
 	get_currentuserinfo();
 
 	$args = array('user_ID' => $current_user->ID);
+	rhb_check_user_badges( $args );
+}
+
+function rhb_check_author() { 
+	
+	global $post;
+
+	$args = array('user_ID' => $post->post_author);
 	rhb_check_user_badges( $args );
 }
 
@@ -401,11 +472,11 @@ function rhb_get_post_tags( $args = '' ) {
 	// This query selects the number of tags used across all posts by a specific user.
 	// Tags which have not been used are not returned.
 	$sql = "SELECT 'post_tag' rh_object_type, trm.name rh_value, COUNT( * ) rh_count 
-		FROM wp_posts pst, 
-			wp_users usr, 
-			wp_term_taxonomy tax, 
-			wp_terms trm, 
-			wp_term_relationships rel
+		FROM " . $wpdb->prefix . "posts pst, 
+			" . $wpdb->prefix . "users usr, 
+			" . $wpdb->prefix . "term_taxonomy tax, 
+			" . $wpdb->prefix . "terms trm, 
+			" . $wpdb->prefix . "term_relationships rel
 		WHERE pst.post_author = usr.ID
 			AND usr.ID = %d
 			AND pst.post_status =  'publish'
@@ -616,7 +687,7 @@ function rhb_add_pages() {
 	function rhb_badges_page() {
 
 		// Check that the user can manage categories.
-		if (!current_user_can('manage_categories'))
+		if ( !current_user_can( 'manage_categories' ) )
 		{
 			wp_die( __('You do not have sufficient permissions to access this page.') );
 		}
@@ -638,7 +709,6 @@ function rhb_add_pages() {
 			?>
 			<div class="updated"><p><strong><?php _e('Badge added successfully.', 'menu-badges' ); ?></strong></p></div>
 			<?php
-
 		}
 
 		if ( array_key_exists('awardrevoke-posted', $_POST) ) {
@@ -836,5 +906,53 @@ function rhb_add_pages() {
 		} // End Post page
 		
 	} // End rhb_badges_page function
-	
 }
+
+/**
+ * LatestBadgesWidget Class
+ */
+class LatestBadgesWidget extends WP_Widget {
+    /** constructor */
+    function LatestBadgesWidget() {
+        parent::WP_Widget(false, $name = 'Latest Badges');	
+    }
+
+    /** @see WP_Widget::widget */
+    function widget($args, $instance) {		
+        extract( $args );
+        $title = apply_filters('widget_title', $instance['title']);
+        ?>
+              <?php echo $before_widget; ?>
+                  <?php if ( $title )
+                        	echo $before_title . $title . $after_title; 
+			else
+				echo $before_title . 'Recent Badges' . $after_title; ?>
+		  
+		  <?php rhb_list_recent_badges(); ?>
+		  
+              <?php echo $after_widget; ?>
+        <?php
+    }
+
+    /** @see WP_Widget::update */
+    function update($new_instance, $old_instance) {				
+	$instance = $old_instance;
+	$instance['title'] = strip_tags($new_instance['title']);
+        return $instance;
+    }
+
+    /** @see WP_Widget::form */
+    function form($instance) {				
+        $title = esc_attr($instance['title']);
+        ?>
+         <p>
+          <label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title:'); ?></label> 
+          <input class="widefat" id="<?php echo $this->get_field_id('title'); ?>" name="<?php echo $this->get_field_name('title'); ?>" type="text" value="<?php echo $title; ?>" />
+        </p>
+        <?php 
+    }
+
+} // class LatestBadgesWidget
+
+// register LatestBadgesWidget widget
+add_action('widgets_init', create_function('', 'return register_widget("LatestBadgesWidget");'));

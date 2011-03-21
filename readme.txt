@@ -22,10 +22,14 @@ A Stack Overflow inspired plugin for WordPress which allows users to acquire bad
 
 1. The Badge management screen
 2. The badge condition management screen
-3. `<?php rhb_list_badges(); ?>` in action
+3. rhb_list_badges() in action
 
 == Changelog ==
 
+= 1.1 =
+* Added 'Latest Badges' widget.
+* The original author is now checked for badges instead of the approver.
+ 
 = 1.0 =
 * First release.
 
