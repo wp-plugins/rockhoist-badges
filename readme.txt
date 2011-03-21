@@ -4,7 +4,7 @@ Donate link: http://blarrr.com/wordpress-badges-plugin/
 Tags: badges, awards, points
 Requires at least: 3.1
 Tested up to: 3.1
-Stable tag: 1.0
+Stable tag: 1.1
 
 A Stack Overflow inspired plugin for WordPress which allows users to acquire badges for contributing website content.
 
