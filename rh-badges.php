@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Rockhoist Badges
-Version: 1.1
+Version: 1.2
 Plugin URI: http://blarrr.com/wordpress-badges-plugin/
 Description: A Stack Overflow inspired plugin which allows users to acquire badges. Badges are created and managed through the standard WordPress Dashboard.
 Author: B. Jordan
@@ -28,7 +28,7 @@ http://www.gnu.org/licenses/gpl.txt
 */
 
 // Change Log
-$current_version = array('1.1');
+$current_version = array('1.2');
 
 // Database schema version
 global $rhb_db_version;
@@ -139,15 +139,30 @@ function rhb_get_badges( $filter = '' ) {
 	
 	if ( empty($filter ) ) { $filter = array(); }
 	
-	$sql = 'SELECT badge_id, name, description, type FROM ' . $wpdb->prefix . 'rh_badges';
+	// Select all rows by default
+	$sql = 'SELECT badge_id, name, description, type FROM ' . $wpdb->prefix . 'rh_badges b WHERE 1=1';
 		
+	// If a user ID was entered.
+	if ( array_key_exists('user_ID', $filter) ) {
+			
+		$user_ID = $filter['user_ID'];
+			
+		// Join the rh_user_badges table.
+		$sql = 'SELECT b.badge_id, b.name, b.description, b.type
+				FROM ' . $wpdb->prefix . 'rh_badges b, 
+					' . $wpdb->prefix . 'rh_user_badges ub
+				WHERE b.badge_id = ub.badge_id
+				AND ub.user_id = ' . $user_ID;
+
+	}
+
 	// If a badge ID was entered.
-	if (array_key_exists('badge_ID', $filter)) {
+	if ( array_key_exists('badge_ID', $filter) ) {
 			
 		$badge_ID = $filter['badge_ID'];
 			
 		// Append a WHERE clause to the SQL.
-		$sql .= " WHERE badge_id = $badge_ID";
+		$sql .= " AND b.badge_id = $badge_ID";
 	}
     		    		
 	$badges = $wpdb->get_results( $sql );
@@ -155,13 +170,16 @@ function rhb_get_badges( $filter = '' ) {
 	return $badges;
 }
 
-function rhb_list_badges() {
+function rhb_list_badges( $filter = '' ) {
+	
+
+	if ( empty($filter ) ) { $filter = array(); }
 
 	print '<div id="badge-table">
 		<table>
 			<tbody>';
-	
-			foreach (rhb_get_badges() as $badge) {
+			
+			foreach (rhb_get_badges( $filter ) as $badge) {
 			
 			print '<tr>
 				<td class="badge-cell">
