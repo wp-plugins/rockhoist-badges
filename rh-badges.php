@@ -140,7 +140,7 @@ function rhb_get_badges( $filter = '' ) {
 	if ( empty($filter ) ) { $filter = array(); }
 	
 	// Select all rows by default
-	$sql = 'SELECT badge_id, name, description, type FROM ' . $wpdb->prefix . 'rh_badges b WHERE 1=1';
+	$sql = 'SELECT badge_id, name, description, type FROM ' . $wpdb->prefix . 'rh_badges b WHERE 1=1 ';
 		
 	// If a user ID was entered.
 	if ( array_key_exists('user_ID', $filter) ) {
@@ -972,5 +972,10 @@ class LatestBadgesWidget extends WP_Widget {
 
 } // class LatestBadgesWidget
 
-// register LatestBadgesWidget widget
-add_action('widgets_init', create_function('', 'return register_widget("LatestBadgesWidget");'));
+// Link to Rockhoist Badges stylesheet and apply some custom styles
+function rhb_css() {
+	echo "\n".'<link rel="stylesheet" href="'. WP_PLUGIN_URL . '/rockhoist-badges/badges.css" type="text/css" media="screen" />'."\n";
+}
+
+add_action('widgets_init', create_function('', 'return register_widget("LatestBadgesWidget");')); // register LatestBadgesWidget widget
+add_action('wp_print_styles', 'rhb_css'); // Rockhoist Badges stylesheet 
