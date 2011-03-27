@@ -1,0 +1,48 @@
+/* Badges */
+
+.badge-cell {
+	height:32px;
+	width:195px;
+}
+
+.badge {
+	-moz-border-radius:6px 6px 6px 6px;
+	background-color:#333333;
+	border:1px solid #333333;
+	color:#FFFFFF !important;
+	display:inline-block;
+	line-height:1.9;
+	margin:0 3px 3px 0;
+	padding:0 6px 0 3px;
+	text-decoration:none;
+}
+
+.badge1, .badge2, .badge3 {
+	display:inline-block;
+	height:11px;
+	line-height:inherit;
+	margin:0 4px 1px 3px;
+	overflow:hidden;
+	vertical-align:text-bottom;
+	width:8px;
+}
+
+.badge1, .badge2, .badge3 {
+	background-image:url("sprites.png?v=1");
+	background-repeat:no-repeat;
+	overflow:hidden;
+}
+
+/* Sprites */
+
+.badge1 {
+	background-position:-3px -3px;
+}
+
+.badge2 {
+	background-position:-23px -3px;
+}
+
+.badge3 {
+	background-position:-43px -3px;
+}
