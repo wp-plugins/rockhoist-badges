@@ -1,4 +1,4 @@
-=== Plugin Name ===
+=== Rockhoist Badges ===
 Contributors: esserq
 Donate link: http://blarrr.com/wordpress-badges-plugin/
 Tags: badges, awards, points
