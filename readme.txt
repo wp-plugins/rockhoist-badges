@@ -1,10 +1,9 @@
 === Rockhoist Badges ===
 Contributors: esserq
-Donate link: http://blarrr.com/wordpress-badges-plugin/
 Tags: badges, awards, points
 Requires at least: 3.1
-Tested up to: 3.1
-Stable tag: 1.2.1
+Tested up to: 3.6.1
+Stable tag: 1.2.2
 
 A Stack Overflow inspired plugin for WordPress which allows users to acquire badges for contributing website content.
 
@@ -37,6 +36,9 @@ More examples and information @ [blarrr.com](http://blarrr.com/wordpress-badges-
 3. rhb_list_badges() in action
 
 == Changelog ==
+
+= 1.2.2 =
+* Fixed compatability issue with prepare statement.
 
 = 1.2.1 =
 * Included CSS with plugin
