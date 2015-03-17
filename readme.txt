@@ -1,4 +1,4 @@
-=== Rockhoist Badges ===
+=== Pegleg Badges ===
 Contributors: esserq
 Tags: badges, awards, points
 Requires at least: 3.1
@@ -21,7 +21,7 @@ Key features include:
 
 Contact me if you find any bugs, issues or have a feature request and I will do my best to accommodate. 
 
-More examples and information @ [blarrr.com](http://blarrr.com/wordpress-badges-plugin/)
+More examples and information @ [pegleg.com.au](http://pegleg.com.au/)
 
 == Installation ==
 

@@ -1,10 +1,10 @@
 <?php
 /*
-Plugin Name: Rockhoist Badges
+Plugin Name: Pegleg Badges
 Version: 1.2.2
 Description: A Stack Overflow inspired plugin which allows users to acquire badges. Badges are created and managed through the standard WordPress Dashboard.
 Author: B. Jordan
-Author URI: http://about.me/blairjordan
+Author URI: http://pegleg.com.au
 
 Copyright (c) 2009
 Released under the GPL license
@@ -970,10 +970,10 @@ class LatestBadgesWidget extends WP_Widget {
 
 } // class LatestBadgesWidget
 
-// Link to Rockhoist Badges stylesheet and apply some custom styles
+// Link to Pegleg Badges stylesheet and apply some custom styles
 function rhb_css() {
 	echo "\n".'<link rel="stylesheet" href="'. WP_PLUGIN_URL . '/rockhoist-badges/badges.css" type="text/css" media="screen" />'."\n";
 }
 
 add_action('widgets_init', create_function('', 'return register_widget("LatestBadgesWidget");')); // register LatestBadgesWidget widget
-add_action('wp_print_styles', 'rhb_css'); // Rockhoist Badges stylesheet 
+add_action('wp_print_styles', 'rhb_css'); // Pegleg Badges stylesheet 
